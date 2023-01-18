@@ -143,7 +143,7 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f"{self.name} {self.lastname} {self.address}"
+        return f"{self.firstname} {self.lastname} {self.address}"
     
 class Cart(models.Model):
     order = models.ForeignKey(
