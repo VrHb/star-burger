@@ -5,6 +5,8 @@ from django.templatetags.static import static
 
 
 from .models import Product
+from .models import Order 
+from .models import Cart 
 
 
 def banners_list_api(request):
@@ -62,7 +64,19 @@ def product_list_api(request):
 def register_order(request):
     try:
         order_data = json.loads(request.body.decode())
-        print(order_data)
+        order = Order.objects.create(
+            name=order_data['firstname'],
+            lastname=order_data['lastname'],
+            address=order_data['address'],
+        )
+        products = order_data['products']
+        print(products)
+        for product in products:
+            Cart.objects.create(
+                order=order,
+                product=Product.objects.get(pk=product['product']),
+                amount=product['quantity'],
+                )
     except ValueError:
         return JsonResponse({"Error": "Bad data!"})
     return JsonResponse({})
