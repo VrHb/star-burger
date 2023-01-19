@@ -120,6 +120,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'firstname',
         'lastname',
+        'phone',
         'address'
     ]
     inlines = [

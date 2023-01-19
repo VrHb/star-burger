@@ -3,6 +3,8 @@ import json
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+from phonenumber_field.phonenumber import PhoneNumber
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from rest_framework.response import Response
 from .models import Product
 from .models import Order 
 from .models import Cart 
+
 
 
 def banners_list_api(request):
@@ -67,24 +70,61 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    firstname = request.data['firstname']
-    lastname = request.data['lastname']
-    address = request.data['address']
-    products = request.data.get('products', None)
-    if type(products) is not list or not products:
+    firstname = request.data.get('firstname', None)
+    if not firstname or not isinstance(firstname, str):
         return Response(
-            {'Error': 'Products data are empty or not list type'},
+            {'Error': 'field firstname are empty or not str!'},
             status=status.HTTP_400_BAD_REQUEST
         )
+    lastname = request.data.get('lastname', None)
+    if not lastname or not isinstance(lastname, str):
+        return Response(
+            {'Error': 'field lastname are empty or not str!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    phone = request.data.get('phonenumber', None)
+    if not isinstance(phone, str) or not phone:
+        return Response(
+            {'Error': 'Phonenumber are empty or not str type!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    parsed_phone = PhoneNumber.from_string(phone, region='RU')
+    print(type(parsed_phone))
+    if not parsed_phone.is_valid():
+        return Response(
+            {'Error': 'Phonenumber not correct!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    address = request.data.get('address', None)
+    if not address or not isinstance(address, str):
+        return Response(
+            {'Error': 'field address are empty or not str!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    products = request.data.get('products', None)
+    if not isinstance(products, list) or not products:
+        return Response(
+            {'Error': 'Products data are empty or not list type!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    print(phone)
     order = Order.objects.create(
         firstname=firstname,
         lastname=lastname,
+        phone=phone,
         address=address,
     )
     for product in products:
+        try:
+            product_from_db = Product.objects.get(pk=product['product'])
+        except Product.DoesNotExist:
+            return Response(
+                {'Error': 'No product with this id!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         Cart.objects.create(
             order=order,
-            product=Product.objects.get(pk=product['product']),
+            product=product_from_db,
             amount=product['quantity'],
-            )
+        )
     return Response({"Status": "ok"}) 
