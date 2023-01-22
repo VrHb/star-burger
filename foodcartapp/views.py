@@ -1,17 +1,12 @@
-import json
-
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-from phonenumber_field.phonenumber import PhoneNumber
 from phonenumber_field.serializerfields import PhoneNumberField
 
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.fields import ListField
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer, ValidationError, Serializer, CharField, IntegerField
-from rest_framework.validators import UniqueValidator
+from rest_framework.serializers import Serializer, CharField, IntegerField
 
 
 from .models import Product
@@ -20,11 +15,23 @@ from .models import Cart
 
 
 class OrderSerializer(Serializer):
+    id = IntegerField(read_only=True)
     firstname = CharField()
     lastname = CharField()
-    phonenumber = PhoneNumberField()
+    phonenumber = PhoneNumberField(region='RU')
     address = CharField()
-    products = ListField(allow_empty=False)
+    products = ListField(allow_empty=False, write_only=True)
+
+    def create(self, validated_data):
+        return Order.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.firstname = validated_data.get('fisrtname', instance.firstname)
+        instance.lastname = validated_data.get('lastname', instance.lastname)
+        instance.phonehumber = validated_data.get('phonenumber', instance.phonenumber)
+        instance.products = validated_data.get('products', instance.products)
+        instance.save()
+        return instance
 
 class ProductSerializer(Serializer):
     product = IntegerField(min_value=1, max_value=Product.objects.count())
@@ -89,15 +96,17 @@ def register_order(request):
     serializer.is_valid(raise_exception=True)
     firstname = request.data.get('firstname', None)
     lastname = request.data.get('lastname', None)
-    phone = request.data.get('phonenumber', None)
+    phonenumber = request.data.get('phonenumber', None)
     address = request.data.get('address', None)
     products = request.data.get('products', None)
-    order = Order.objects.create(
+    order = Order(
         firstname=firstname,
         lastname=lastname,
-        phone=phone,
+        phonenumber=phonenumber,
         address=address,
     )
+    order.save()
+    serialized_order = OrderSerializer(order).data
     for product in products:
         serializer = ProductSerializer(data=product)
         serializer.is_valid(raise_exception=True)
@@ -107,4 +116,4 @@ def register_order(request):
             product=product_from_db,
             amount=product['quantity'],
         )
-    return Response({"Status": "ok"}) 
+    return Response(serialized_order) 
