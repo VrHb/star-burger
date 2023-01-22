@@ -135,7 +135,7 @@ class Order(models.Model):
         max_length=140,
         db_index=True,
         )
-    phone = PhoneNumberField('Номер телефона')
+    phonenumber = PhoneNumberField('Номер телефона')
     address = models.CharField('Адрес покупателя', max_length=100)
 
     class Meta:
