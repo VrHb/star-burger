@@ -90,6 +90,24 @@ def product_list_api(request):
     })
 
 
+def orders_list_api(request):
+    orders = Order.objects.all()
+    dumped_orders = []
+    for order in orders:
+        dumped_order = {
+            'id': order.id,
+            'firstname': order.firstname,
+            'lastname': order.lastname,
+            'phonenumber': order.phonenumber,
+            'address': order.address
+        }
+        dumped_orders.append(dumped_order)
+    return JsonResponse(dumped_orders, safe=False, json_dumps_params={
+        'ensure_ascii': False,
+        'indent': 4,
+    })
+
+
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
@@ -98,15 +116,15 @@ def register_order(request):
     lastname = request.data.get('lastname', None)
     phonenumber = request.data.get('phonenumber', None)
     address = request.data.get('address', None)
-    products = request.data.get('products', None)
     order = Order(
         firstname=firstname,
         lastname=lastname,
         phonenumber=phonenumber,
         address=address,
-    )
+        )
     order.save()
     serialized_order = OrderSerializer(order).data
+    products = request.data.get('products', None)
     for product in products:
         serializer = ProductSerializer(data=product)
         serializer.is_valid(raise_exception=True)
