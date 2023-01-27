@@ -133,5 +133,6 @@ def register_order(request):
             order=order,
             product=product_from_db,
             amount=product['quantity'],
+            price=product_from_db.price
         )
     return Response(serialized_order) 
