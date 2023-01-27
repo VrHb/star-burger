@@ -129,7 +129,7 @@ class RestaurantMenuItem(models.Model):
 class OrderQuerySet(models.QuerySet):
     def count_order_price(self):
         orders = Cart.objects.annotate(
-            product_price=(F('product__price') * F('amount'))
+            product_price=(F('price') * F('amount'))
         ) \
         .values(
             'order__id',
@@ -178,6 +178,12 @@ class Cart(models.Model):
         on_delete=models.CASCADE
         )    
     amount = models.IntegerField('Количество')
+    price = models.DecimalField(
+        'цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
 
     class Meta:
         verbose_name = 'Товар'

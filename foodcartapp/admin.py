@@ -121,7 +121,7 @@ class OrderAdmin(admin.ModelAdmin):
         'firstname',
         'lastname',
         'phonenumber',
-        'address'
+        'address',
     ]
     inlines = [
         CartInline
