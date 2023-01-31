@@ -1,7 +1,10 @@
 from django.contrib import admin
-from django.shortcuts import reverse
+from django.forms import ModelForm
+from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
+from star_burger.settings import ALLOWED_HOSTS
 
 from .models import Product
 from .models import ProductCategory
@@ -112,6 +115,19 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    form = ModelForm
+
+    def response_post_save_change(self, request, obj):
+        response = super().response_post_save_change(request, obj)
+        if 'next' in request.GET:
+            if url_has_allowed_host_and_scheme(
+                request.GET.get('next'),
+                allowed_hosts=ALLOWED_HOSTS
+            ):
+                return redirect(request.GET.get('next'))
+        else:
+            return response
+
     search_fields = [
         'firstname',
         'lastname'
@@ -126,3 +142,5 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         CartInline
     ]
+
+
