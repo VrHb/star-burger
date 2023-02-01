@@ -127,6 +127,7 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+    #  TODO rename method
     def count_order_price(self):
         orders = Cart.objects.annotate(product_price=(F('price') * F('amount'))) \
             .annotate(order_price=(Sum('product_price'))).select_related('order')
@@ -159,6 +160,7 @@ class Order(models.Model):
         default='Обрабатывается',
         db_index=True
     )
+    comment = models.TextField('Комментарий к заказу', blank=True)
     objects = OrderQuerySet.as_manager()
 
     class Meta:
