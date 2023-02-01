@@ -128,20 +128,18 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def count_order_price(self):
-        orders = Cart.objects.annotate(
-            product_price=(F('price') * F('amount'))
-        ) \
-        .values(
-            'order__id',
-            'order__firstname',
-            'order__lastname',
-            'order__address',
-            'order__phonenumber'
-        ).annotate(order_price=(Sum('product_price')))
+        orders = Cart.objects.annotate(product_price=(F('price') * F('amount'))) \
+            .annotate(order_price=(Sum('product_price'))).select_related('order')
         return orders
 
 
 class Order(models.Model):
+    ORDER_STATE_CHOICES = [
+        ('accepted', 'Обрабатывается'),
+        ('packing', 'Упаковывается'),
+        ('delivery', 'Передан в доставку'),
+        ('done', 'Выполнен')
+    ]
     firstname = models.CharField(
         'Имя покупателя',
         max_length=100,
@@ -154,6 +152,13 @@ class Order(models.Model):
         )
     phonenumber = PhoneNumberField('Номер телефона')
     address = models.CharField('Адрес покупателя', max_length=100)
+    status = models.CharField(
+        'Статус',
+        max_length=50,
+        choices=ORDER_STATE_CHOICES, 
+        default='Обрабатывается',
+        db_index=True
+    )
     objects = OrderQuerySet.as_manager()
 
     class Meta:
