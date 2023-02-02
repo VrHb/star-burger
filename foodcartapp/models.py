@@ -142,6 +142,11 @@ class Order(models.Model):
         ('delivery', 'Передан в доставку'),
         ('done', 'Выполнен')
     ]
+    ORDER_PAYMENT_CHOICES = [
+        ('clarify', 'Уточнить'),
+        ('cash', 'Наличными'),
+        ('card', 'Картой')
+    ]
     firstname = models.CharField(
         'Имя покупателя',
         max_length=100,
@@ -178,6 +183,31 @@ class Order(models.Model):
         'Дата доставки',
         null=True,
         blank=True,
+        db_index=True
+    )
+    registered_at = models.DateTimeField(
+        'Дата регистрации',
+        default=timezone.now,
+        blank=True,
+        db_index=True
+    )
+    called_at = models.DateTimeField(
+        'Дата звонка',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+    delivered_at = models.DateTimeField(
+        'Дата доставки',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+    pay_method = models.CharField(
+        'Способ оплаты',
+        max_length=100,
+        choices=ORDER_PAYMENT_CHOICES,
+        default='Уточнить',
         db_index=True
     )
     objects = OrderQuerySet.as_manager()
