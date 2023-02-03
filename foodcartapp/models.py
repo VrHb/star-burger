@@ -208,6 +208,14 @@ class Order(models.Model):
         default='Уточнить',
         db_index=True
     )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='Рестораны',
+        related_name='orders',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
     objects = OrderQuerySet.as_manager()
 
     class Meta:
@@ -238,6 +246,7 @@ class Cart(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
 
     class Meta:
         verbose_name = 'Товар'
