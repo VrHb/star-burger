@@ -94,5 +94,5 @@ def view_restaurants(request):
 def view_orders(request):
     print(request.path)
     return render(request, template_name='order_items.html', context={
-        'order_items': Order.objects.count_order_price().exclude(order__status='done'),
+        'order_items': Order.objects.count_order_price().exclude(status='done'),
     })
