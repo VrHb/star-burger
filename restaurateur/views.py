@@ -115,11 +115,14 @@ def view_orders(request):
                 restaurant['restaurant__address']
             )
             restaurant['coordinates'] = restaurant_coordinates
-            distance_to_order = distance.distance(
-                order_coordinates,
-                restaurant_coordinates
-            ).km
-            restaurant['distance_to_order'] = f'{round(distance_to_order, 2)} км' 
+            try:
+                distance_to_order = distance.distance(
+                    order_coordinates,
+                    restaurant_coordinates
+                ).km
+                restaurant['distance_to_order'] = f'{round(distance_to_order, 2)} км' 
+            except ValueError:
+                restaurant['distance_to_order'] = '0 км'  
         order_with_restaurants.append((order, sorted(restaurants, key=lambda restaurant: restaurant['distance_to_order'])))
     return render(request, template_name='order_items.html', context={
         'order_items': order_with_restaurants
