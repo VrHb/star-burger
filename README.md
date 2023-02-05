@@ -59,6 +59,8 @@ pip install -r requirements.txt
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```
 
+Определите переменную окружения для определения расстояния от адреса заказа до ресторано`YANDEX_API_KEY`. Посмотреть как получить можно [тут](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
+
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh
