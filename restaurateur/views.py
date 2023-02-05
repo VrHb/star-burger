@@ -3,7 +3,8 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Exists, Count
+from django.db.models import Count
+from django.conf import settings
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
@@ -11,7 +12,6 @@ from django.contrib.auth import views as auth_views
 import requests
 from geopy import distance
 
-from star_burger.settings import YANDEX_GEO_API_KEY
 from foodcartapp.models import Product, Restaurant, Cart, Order, RestaurantMenuItem 
 
 
@@ -106,12 +106,12 @@ def view_orders(request):
             .values('restaurant__name', 'restaurant__address').annotate(Count('product__id')) \
             .filter(product__id__count=products.count())
         order_coordinates = fetch_coordinates(
-            YANDEX_GEO_API_KEY,
+            settings.YANDEX_GEO_API_KEY,
             order.address
         )
         for restaurant in restaurants:
             restaurant_coordinates = fetch_coordinates(
-                YANDEX_GEO_API_KEY,
+                settings.YANDEX_GEO_API_KEY,
                 restaurant['restaurant__address']
             )
             restaurant['coordinates'] = restaurant_coordinates
@@ -120,7 +120,7 @@ def view_orders(request):
                 restaurant_coordinates
             ).km
             restaurant['distance_to_order'] = f'{round(distance_to_order, 2)} км' 
-        order_with_restaurants.append((order, restaurants))
+        order_with_restaurants.append((order, sorted(restaurants, key=lambda restaurant: restaurant['distance_to_order'])))
     return render(request, template_name='order_items.html', context={
         'order_items': order_with_restaurants
     })
