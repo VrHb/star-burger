@@ -8,7 +8,10 @@ from django.db.models import Exists, Count
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
+import requests
+from geopy import distance
 
+from star_burger.settings import YANDEX_GEO_API_KEY
 from foodcartapp.models import Product, Restaurant, Cart, Order, RestaurantMenuItem 
 
 
@@ -95,17 +98,48 @@ def view_restaurants(request):
 def view_orders(request): 
     orders = Order.objects.count_order_price().exclude(status='done').order_by('-status')
     order_with_restaurants = []
+    restaurants_with_coordinates = []
     for order in orders:
         # TODO optimize queryes
-
         products = order.cart_items.all().values('product__id')
         restaurants = RestaurantMenuItem.objects.filter(product__id__in=products) \
-            .values('restaurant__name').annotate(Count('product__id')) \
+            .values('restaurant__name', 'restaurant__address').annotate(Count('product__id')) \
             .filter(product__id__count=products.count())
+        order_coordinates = fetch_coordinates(
+            YANDEX_GEO_API_KEY,
+            order.address
+        )
+        for restaurant in restaurants:
+            restaurant_coordinates = fetch_coordinates(
+                YANDEX_GEO_API_KEY,
+                restaurant['restaurant__address']
+            )
+            restaurant['coordinates'] = restaurant_coordinates
+            distance_to_order = distance.distance(
+                order_coordinates,
+                restaurant_coordinates
+            ).km
+            restaurant['distance_to_order'] = f'{round(distance_to_order, 2)} км' 
         order_with_restaurants.append((order, restaurants))
-
-    print(order_with_restaurants)
-
     return render(request, template_name='order_items.html', context={
         'order_items': order_with_restaurants
     })
+
+
+def fetch_coordinates(apikey, address):
+    base_url = 'https://geocode-maps.yandex.ru/1.x'
+    response = requests.get(
+        base_url,
+        params={
+            'geocode': address,
+            'apikey': apikey,
+            'format': 'json',
+        }
+    )
+    response.raise_for_status()
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+    if not found_places:
+        return None
+    most_reverant = found_places[0]
+    lon, lat = most_reverant['GeoObject']['Point']['pos'].split(' ')
+    return lon, lat
