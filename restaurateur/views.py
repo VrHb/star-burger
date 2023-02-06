@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -12,7 +14,8 @@ from django.contrib.auth import views as auth_views
 import requests
 from geopy import distance
 
-from foodcartapp.models import Product, Restaurant, Cart, Order, RestaurantMenuItem 
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem 
+from locations.models import Location
 
 
 class Login(forms.Form):
@@ -98,29 +101,49 @@ def view_restaurants(request):
 def view_orders(request): 
     orders = Order.objects.count_order_price().exclude(status='done').order_by('-status')
     order_with_restaurants = []
-    restaurants_with_coordinates = []
     for order in orders:
-        # TODO optimize queryes
-        products = order.cart_items.all().values('product__id')
+        products = [item.product.id for item in order.cart_items.select_related('product').all()] 
         restaurants = RestaurantMenuItem.objects.filter(product__id__in=products) \
-            .values('restaurant__name', 'restaurant__address').annotate(Count('product__id')) \
-            .filter(product__id__count=products.count())
-        order_coordinates = fetch_coordinates(
-            settings.YANDEX_GEO_API_KEY,
-            order.address
-        )
-        for restaurant in restaurants:
-            restaurant_coordinates = fetch_coordinates(
+        .values('restaurant__name', 'restaurant__address') \
+        .annotate(count_items=(Count('product__id'))).filter(count_items=len(products))
+        try:
+            location = Location.objects.get(address=order.address)
+            order_coordinates = (location.lon, location.lat)
+        except Location.DoesNotExist:
+            lon, lat = fetch_coordinates(
                 settings.YANDEX_GEO_API_KEY,
-                restaurant['restaurant__address']
+                order.address
             )
+            location = Location.objects.create(
+                address=order.address,
+                lon=lon,
+                lat=lat,
+                query_date=datetime.now()
+            )
+            order_coordinates = (location.lon, location.lat)
+        for restaurant in restaurants:
+            try:
+                location = Location.objects.get(address=restaurant['restaurant__address'])
+                restaurant_coordinates = (location.lon, location.lat)
+            except Location.DoesNotExist:
+                lon, lat = fetch_coordinates(
+                    settings.YANDEX_GEO_API_KEY,
+                    restaurant.address
+                )
+                location = Location.objects.create(
+                    address=restaurant['restaurant__address'],
+                    lon=lon,
+                    lat=lat,
+                    query_date=datetime.now()
+                )
+                restaurant_coordinates = (location.lon, location.lat)
             restaurant['coordinates'] = restaurant_coordinates
             try:
                 distance_to_order = distance.distance(
                     order_coordinates,
                     restaurant_coordinates
                 ).km
-                restaurant['distance_to_order'] = f'{round(distance_to_order, 2)} км' 
+                restaurant['distance_to_order'] = f'{round(distance_to_order, 3)} км' 
             except ValueError:
                 restaurant['distance_to_order'] = '0 км'  
         order_with_restaurants.append((order, sorted(restaurants, key=lambda restaurant: restaurant['distance_to_order'])))
@@ -142,7 +165,7 @@ def fetch_coordinates(apikey, address):
     response.raise_for_status()
     found_places = response.json()['response']['GeoObjectCollection']['featureMember']
     if not found_places:
-        return None
+        return (0, 0) 
     most_reverant = found_places[0]
     lon, lat = most_reverant['GeoObject']['Point']['pos'].split(' ')
     return lon, lat
