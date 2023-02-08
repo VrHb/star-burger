@@ -35,7 +35,7 @@ class OrderSerializer(Serializer):
         return instance
 
 class ProductSerializer(Serializer):
-    product = IntegerField(min_value=1, max_value=Product.objects.count())
+    product = IntegerField(min_value=1)
     quantity = IntegerField()
 
 
