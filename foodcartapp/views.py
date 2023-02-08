@@ -140,4 +140,3 @@ def register_order(request):
         return Response(serialized_order)
     except IntegrityError:
         pass
-        # TODO log info here 

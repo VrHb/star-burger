@@ -140,7 +140,6 @@ class OrderAdmin(admin.ModelAdmin):
         'address',
     ]
     inlines = [
-        # TODO add restaurants available list
         CartInline,
     ]
 
