@@ -54,12 +54,36 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Определите переменную окружения `SECRET_KEY`. Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
-```sh
-SECRET_KEY=django-insecure-0if40nf4nf93n4
+
+#### Для работы проекта понадобится две переменные окружения:
+
+Создайте файл `.env`:
+
+```
+touch .env
 ```
 
-Определите переменную окружения для определения расстояния от адреса заказа до ресторано`YANDEX_API_KEY`. Посмотреть как получить можно [тут](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
+1. Секретный ключ проекта: 
+
+```
+python manage.py shell
+```
+
+```
+from django.core.management.utils import get_random_secret_key  
+
+get_random_secret_key()
+```
+
+```
+echo "DJANGO_SECRET_KEY"="<сгенерированный ключ проекта>" >> .env
+```
+2. Переменная окружения для определения расстояния от адреса заказа до ресторана `YANDEX_API_KEY`. Посмотреть как получить можно [тут](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
+
+```sh
+YANDEX_API_KEY="<ключ api yandex geocoder>"
+```
+#### Последний шаг сборки бэкэнда
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
