@@ -11,8 +11,8 @@ from rest_framework.serializers import Serializer, CharField, IntegerField
 
 
 from .models import Product
-from .models import Order 
-from .models import Cart 
+from .models import Order
+from .models import Cart
 
 
 class OrderSerializer(Serializer):
@@ -27,12 +27,21 @@ class OrderSerializer(Serializer):
         return Order.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.firstname = validated_data.get('fisrtname', instance.firstname)
-        instance.lastname = validated_data.get('lastname', instance.lastname)
-        instance.phonehumber = validated_data.get('phonenumber', instance.phonenumber)
-        instance.products = validated_data.get('products', instance.products)
+        instance.firstname = validated_data.get(
+            'fisrtname', instance.firstname
+        )
+        instance.lastname = validated_data.get(
+            'lastname', instance.lastname
+        )
+        instance.phonehumber = validated_data.get(
+            'phonenumber', instance.phonenumber
+        )
+        instance.products = validated_data.get(
+            'products', instance.products
+        )
         instance.save()
         return instance
+
 
 class ProductSerializer(Serializer):
     product = IntegerField(min_value=1)
@@ -65,7 +74,6 @@ def banners_list_api(request):
 
 def product_list_api(request):
     products = Product.objects.select_related('category').available()
-
     dumped_products = []
     for product in products:
         dumped_product = {
@@ -107,6 +115,7 @@ def orders_list_api(request):
         'ensure_ascii': False,
         'indent': 4,
     })
+
 
 @transaction.atomic
 @api_view(['POST'])

@@ -130,7 +130,9 @@ class RestaurantMenuItem(models.Model):
 class OrderQuerySet(models.QuerySet):
     def count_order_price(self):
         orders = Order.objects.annotate(
-            order_price=Sum(F('cart_items__product__price') * F('cart_items__amount'))
+            order_price=Sum(
+                F('cart_items__product__price') * F('cart_items__amount')
+            )
         )
         return orders
 
@@ -162,7 +164,7 @@ class Order(models.Model):
     status = models.CharField(
         'Статус',
         max_length=50,
-        choices=ORDER_STATE_CHOICES, 
+        choices=ORDER_STATE_CHOICES,
         default='Обрабатывается',
         db_index=True
     )
@@ -240,7 +242,7 @@ class Cart(models.Model):
         verbose_name='Товар',
         related_name='cart_items',
         on_delete=models.CASCADE
-        )    
+        )
     amount = models.IntegerField('Количество')
     price = models.DecimalField(
         'цена',
@@ -248,7 +250,6 @@ class Cart(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-
 
     class Meta:
         verbose_name = 'Товар'

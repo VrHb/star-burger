@@ -14,7 +14,7 @@ from django.contrib.auth import views as auth_views
 import requests
 from geopy import distance
 
-from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem 
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 from locations.models import Location
 
 
@@ -38,7 +38,7 @@ class Login(forms.Form):
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         form = Login()
-        return render(request, "login.html", context={
+        return render(request, 'login.html', context={
             'form': form
         })
 
@@ -53,10 +53,10 @@ class LoginView(View):
             if user:
                 login(request, user)
                 if user.is_staff:  # FIXME replace with specific permission
-                    return redirect("restaurateur:RestaurantView")
-                return redirect("start_page")
+                    return redirect('restaurateur:RestaurantView')
+                return redirect('start_page')
 
-        return render(request, "login.html", context={
+        return render(request, 'login.html', context={
             'form': form,
             'ivalid': True,
         })
@@ -77,14 +77,18 @@ def view_products(request):
 
     products_with_restaurant_availability = []
     for product in products:
-        availability = {item.restaurant_id: item.availability for item in product.menu_items.all()}
-        ordered_availability = [availability.get(restaurant.id, False) for restaurant in restaurants]
+        availability = {
+            item.restaurant_id: item.availability for item in product.menu_items.all()
+        }
+        ordered_availability = [
+            availability.get(restaurant.id, False) for restaurant in restaurants
+        ]
 
         products_with_restaurant_availability.append(
             (product, ordered_availability)
         )
 
-    return render(request, template_name="products_list.html", context={
+    return render(request, template_name='products_list.html', context={
         'products_with_restaurant_availability': products_with_restaurant_availability,
         'restaurants': restaurants,
     })
@@ -92,20 +96,24 @@ def view_products(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_restaurants(request):
-    return render(request, template_name="restaurants_list.html", context={
+    return render(request, template_name='restaurants_list.html', context={
         'restaurants': Restaurant.objects.all(),
     })
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
-def view_orders(request): 
-    orders = Order.objects.count_order_price().exclude(status='done').order_by('-status')
+def view_orders(request):
+    orders = Order.objects.count_order_price().exclude(status='done') \
+        .order_by('-status')
     order_with_restaurants = []
     for order in orders:
-        products = [item.product.id for item in order.cart_items.select_related('product').all()] 
+        products = [
+            item.product.id for item in order.cart_items.select_related('product').all()
+        ]
         restaurants = RestaurantMenuItem.objects.filter(product__id__in=products) \
-        .values('restaurant__name', 'restaurant__address') \
-        .annotate(count_items=(Count('product__id'))).filter(count_items=len(products))
+            .values('restaurant__name', 'restaurant__address') \
+            .annotate(count_items=(Count('product__id'))) \
+            .filter(count_items=len(products))
         try:
             location = Location.objects.get(address=order.address)
             order_coordinates = (location.lon, location.lat)
@@ -143,10 +151,15 @@ def view_orders(request):
                     order_coordinates,
                     restaurant_coordinates
                 ).km
-                restaurant['distance_to_order'] = f'{round(distance_to_order, 3)} км' 
+                restaurant['distance_to_order'] = f'{round(distance_to_order, 3)} км'
             except ValueError:
-                restaurant['distance_to_order'] = '0 км'  
-        order_with_restaurants.append((order, sorted(restaurants, key=lambda restaurant: restaurant['distance_to_order'])))
+                restaurant['distance_to_order'] = '0 км'
+        order_with_restaurants.append(
+            (order, sorted(
+                restaurants,
+                key=lambda restaurant: restaurant['distance_to_order']
+                ))
+        )
     return render(request, template_name='order_items.html', context={
         'order_items': order_with_restaurants
     })
@@ -165,7 +178,7 @@ def fetch_coordinates(apikey, address):
     response.raise_for_status()
     found_places = response.json()['response']['GeoObjectCollection']['featureMember']
     if not found_places:
-        return (0, 0) 
+        return (0, 0)
     most_reverant = found_places[0]
     lon, lat = most_reverant['GeoObject']['Point']['pos'].split(' ')
     return lon, lat
