@@ -243,7 +243,10 @@ class CartItem(models.Model):
         related_name='cart_items',
         on_delete=models.CASCADE
         )
-    amount = models.IntegerField('Количество')
+    amount = models.IntegerField(
+        'Количество',
+        validators=[MinValueValidator(1)]
+    )
     price = models.DecimalField(
         'цена',
         max_digits=8,
