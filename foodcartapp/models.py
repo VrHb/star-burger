@@ -230,7 +230,7 @@ class Order(models.Model):
         return f"{self.firstname} {self.lastname} {self.address}"
 
 
-class Cart(models.Model):
+class CartItem(models.Model):
     order = models.ForeignKey(
         Order,
         verbose_name='Заказ',

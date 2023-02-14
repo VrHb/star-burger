@@ -12,7 +12,7 @@ from rest_framework.serializers import Serializer, CharField, IntegerField
 
 from .models import Product
 from .models import Order
-from .models import Cart
+from .models import CartItem
 
 
 class OrderSerializer(Serializer):
@@ -140,7 +140,7 @@ def register_order(request):
             serializer = ProductSerializer(data=product)
             serializer.is_valid(raise_exception=True)
             product_from_db = Product.objects.get(id=product['product'])
-            Cart.objects.create(
+            CartItem.objects.create(
                 order=order,
                 product=product_from_db,
                 amount=product['quantity'],

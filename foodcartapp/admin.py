@@ -11,7 +11,7 @@ from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
-from .models import Cart
+from .models import CartItem
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -19,8 +19,8 @@ class RestaurantMenuItemInline(admin.TabularInline):
     extra = 0
 
 
-class CartInline(admin.TabularInline):
-    model = Cart
+class CartItemInline(admin.TabularInline):
+    model = CartItem
     extra = 0
 
 
@@ -147,5 +147,5 @@ class OrderAdmin(admin.ModelAdmin):
         'address',
     ]
     inlines = [
-        CartInline,
+        CartItemInline,
     ]
