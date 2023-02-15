@@ -122,10 +122,10 @@ def orders_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    firstname = request.data.get('firstname', None)
-    lastname = request.data.get('lastname', None)
-    phonenumber = request.data.get('phonenumber', None)
-    address = request.data.get('address', None)
+    firstname = request.data['firstname']
+    lastname = request.data['lastname']
+    phonenumber = request.data['phonenumber']
+    address = request.data['address']
     order = Order(
         firstname=firstname,
         lastname=lastname,
@@ -134,7 +134,7 @@ def register_order(request):
         )
     order.save()
     serialized_order = OrderSerializer(order).data
-    products = request.data.get('products', None)
+    products = request.data['products']
     for product in products:
         serializer = ProductSerializer(data=product)
         serializer.is_valid(raise_exception=True)
