@@ -120,32 +120,29 @@ def orders_list_api(request):
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
-    try:
-        serializer = OrderSerializer(data=request.data)
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    firstname = request.data.get('firstname', None)
+    lastname = request.data.get('lastname', None)
+    phonenumber = request.data.get('phonenumber', None)
+    address = request.data.get('address', None)
+    order = Order(
+        firstname=firstname,
+        lastname=lastname,
+        phonenumber=phonenumber,
+        address=address,
+        )
+    order.save()
+    serialized_order = OrderSerializer(order).data
+    products = request.data.get('products', None)
+    for product in products:
+        serializer = ProductSerializer(data=product)
         serializer.is_valid(raise_exception=True)
-        firstname = request.data.get('firstname', None)
-        lastname = request.data.get('lastname', None)
-        phonenumber = request.data.get('phonenumber', None)
-        address = request.data.get('address', None)
-        order = Order(
-            firstname=firstname,
-            lastname=lastname,
-            phonenumber=phonenumber,
-            address=address,
-            )
-        order.save()
-        serialized_order = OrderSerializer(order).data
-        products = request.data.get('products', None)
-        for product in products:
-            serializer = ProductSerializer(data=product)
-            serializer.is_valid(raise_exception=True)
-            product_from_db = Product.objects.get(id=product['product'])
-            CartItem.objects.create(
-                order=order,
-                product=product_from_db,
-                amount=product['quantity'],
-                price=product_from_db.price
-            )
-        return Response(serialized_order)
-    except IntegrityError:
-        pass
+        product_from_db = Product.objects.get(id=product['product'])
+        CartItem.objects.create(
+            order=order,
+            product=product_from_db,
+            amount=product['quantity'],
+            price=product_from_db.price
+        )
+    return Response(serialized_order)

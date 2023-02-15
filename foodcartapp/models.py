@@ -211,9 +211,9 @@ class Order(models.Model):
         default='Уточнить',
         db_index=True
     )
-    restaurant = models.ForeignKey(
+    chosen_restaurant = models.ForeignKey(
         Restaurant,
-        verbose_name='Заказы',
+        verbose_name='Ресторан готовящий заказ',
         related_name='orders',
         blank=True,
         null=True,
