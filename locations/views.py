@@ -1,3 +1,6 @@
+import requests
+
+
 def fetch_coordinates(apikey, address):
     base_url = 'https://geocode-maps.yandex.ru/1.x'
     response = requests.get(

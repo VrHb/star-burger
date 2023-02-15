@@ -127,7 +127,7 @@ def view_orders(request):
                 address=order.address,
                 lon=lon,
                 lat=lat,
-                query_date=datetime.now()
+                query_at=datetime.now()
             )
             order_coordinates = (location.lon, location.lat)
         for restaurant in restaurants:
@@ -143,7 +143,7 @@ def view_orders(request):
                     address=restaurant['restaurant__address'],
                     lon=lon,
                     lat=lat,
-                    query_date=datetime.now()
+                    query_at=datetime.now()
                 )
                 restaurant_coordinates = (location.lon, location.lat)
             restaurant['coordinates'] = restaurant_coordinates
