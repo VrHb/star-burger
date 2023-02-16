@@ -126,23 +126,26 @@ def register_order(request):
     lastname = request.data['lastname']
     phonenumber = request.data['phonenumber']
     address = request.data['address']
-    order = Order(
+    order = Order.objects.create(
         firstname=firstname,
         lastname=lastname,
         phonenumber=phonenumber,
         address=address,
-        )
-    order.save()
+    )
     serialized_order = OrderSerializer(order).data
     products = request.data['products']
+    items = [] 
     for product in products:
         serializer = ProductSerializer(data=product)
         serializer.is_valid(raise_exception=True)
         product_from_db = Product.objects.get(id=product['product'])
-        CartItem.objects.create(
+        items.append(
+        CartItem(
             order=order,
             product=product_from_db,
             amount=product['quantity'],
             price=product_from_db.price
+            )
         )
+    CartItem.objects.bulk_create(items)
     return Response(serialized_order)
