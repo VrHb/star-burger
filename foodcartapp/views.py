@@ -7,7 +7,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.decorators import api_view
 from rest_framework.fields import ListField
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer, CharField, IntegerField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, IntegerField
 
 
 from .models import Product
@@ -15,32 +15,20 @@ from .models import Order
 from .models import CartItem
 
 
-class OrderSerializer(Serializer):
-    id = IntegerField(read_only=True)
-    firstname = CharField()
-    lastname = CharField()
-    phonenumber = PhoneNumberField(region='RU')
-    address = CharField()
+class OrderSerializer(ModelSerializer):
     products = ListField(allow_empty=False, write_only=True)
 
-    def create(self, validated_data):
-        return Order.objects.create(**validated_data)
+    class Meta:
+        model = Order
+        fields = [
+            'id',
+            'firstname',
+            'lastname',
+            'phonenumber',
+            'address',
+            'products'
+        ]
 
-    def update(self, instance, validated_data):
-        instance.firstname = validated_data.get(
-            'fisrtname', instance.firstname
-        )
-        instance.lastname = validated_data.get(
-            'lastname', instance.lastname
-        )
-        instance.phonehumber = validated_data.get(
-            'phonenumber', instance.phonenumber
-        )
-        instance.products = validated_data.get(
-            'products', instance.products
-        )
-        instance.save()
-        return instance
 
 
 class ProductSerializer(Serializer):
