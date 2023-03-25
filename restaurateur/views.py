@@ -103,32 +103,15 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.count_order_price().exclude(status='done') \
-        .order_by('-status')
-    locations = Location.objects.all()
-    orders_with_coordinates = orders.annotate(
-        lat=Subquery(
-            locations.filter(address=OuterRef('address')).values_list('lat')
-        ),
-        lon=Subquery(
-            locations.filter(address=OuterRef('address')).values_list('lon')
-        )
-    )
+    orders = list(Order.objects.prefetch_related('cart_items').count_order_price().exclude(status='done') \
+        .order_by('-status'))
+    restaurant_items = list(RestaurantMenuItem.objects.select_related('restaurant', 'product').all())
+    restaurants = {restaurant.product.id: restaurant.restaurant.address for restaurant in restaurant_items}
     order_with_restaurants = []
-    for order in list(orders_with_coordinates):
-        products = order.cart_items.prefetch_related('product').values('product__id')
-        restaurant_items = RestaurantMenuItem.objects.select_related('product').filter(
-            product__id__in=products,
-            availability=True
-        ).annotate(
-            lat=Subquery(
-                locations.filter(address=OuterRef('restaurant__address')).values_list('lat')
-            ),
-            lon=Subquery(
-                locations.filter(address=OuterRef('restaurant__address')).values_list('lon')
-            ),
-        )
-        if not (order.lon and order.lat):
+    for order in orders:
+        order_rests = [restaurants.get(item.id) for item in order.cart_items.all()]
+        print(order_rests)
+        """
             lon, lat = fetch_coordinates(
                 settings.YANDEX_GEO_API_KEY,
                 order.address
@@ -171,10 +154,11 @@ def view_orders(request):
                     'distance_to_order': distance_to_order
                 }
             )
+        """
         order_with_restaurants.append(
             {
                 'order': order, 
-                'restaurants': restaurants_with_distance 
+                'restaurants': order_rests 
             }
         )
     return render(request, template_name='order_items.html', context={

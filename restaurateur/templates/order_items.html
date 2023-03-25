@@ -42,7 +42,7 @@
             <details>
               <summary>Может быть приготовлен ресторанами:</summary>
               {% for restaurant in order.restaurants %}
-              <li>{{ restaurant.restaurant.restaurant.name }}</li>
+              <li>{{ restaurant }}</li>
               {% endfor %}
             </details>
           {% endif %}
