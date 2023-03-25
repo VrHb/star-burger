@@ -103,15 +103,23 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = list(Order.objects.prefetch_related('cart_items').count_order_price().exclude(status='done') \
+    orders = list(Order.objects.prefetch_related('cart_items') \
+        .count_order_price().exclude(status='done') \
         .order_by('-status'))
-    restaurant_items = list(RestaurantMenuItem.objects.select_related('restaurant', 'product').all())
-    restaurants = {restaurant.product.id: restaurant.restaurant.address for restaurant in restaurant_items}
+    restaurant_items = list(RestaurantMenuItem.objects.select_related('restaurant', 'product').values('restaurant__name', 'product__id', 'restaurant__address'))
+    
+    print(restaurant_items)
+    # restaurants = {item.product.id: item.restaurant for item in restaurant_items}
+    location_objects = Location.objects.all()
+    locations = {location.address: (location.lon, location.lat) for location in location_objects}
     order_with_restaurants = []
     for order in orders:
-        order_rests = [restaurants.get(item.id) for item in order.cart_items.all()]
-        print(order_rests)
-        """
+        # order_rests = [restaurants.get(item.id, None) for item in order.cart_items.all()]
+        order_rests = restaurant_items.filter(product__in=order.cart_items \
+            .select_related('product') \
+            .values('product'), availability=True)
+        order_coordinates = locations.get(order.address, None)
+        if not order_coordinates:
             lon, lat = fetch_coordinates(
                 settings.YANDEX_GEO_API_KEY,
                 order.address
@@ -123,42 +131,40 @@ def view_orders(request):
                 query_at=datetime.now()
             )
             order_coordinates = (location.lon, location.lat)
-
-        order_coordinates = (order.lon, order.lat)
-        restaurants_with_distance = []
-        for restaurant in restaurant_items:
-            if not(restaurant.lon and restaurant.lat):
-                lon, lat = fetch_coordinates(
-                    settings.YANDEX_GEO_API_KEY,
-                    restaurant.restaurant.address
+        restaurants_with_distance_to_order = []
+        if not None in order_rests:
+            for restaurant in order_rests:
+                restaurant_coordinates = locations.get(restaurant.restaurant.address)
+                if not restaurant_coordinates:
+                    lon, lat = fetch_coordinates(
+                        settings.YANDEX_GEO_API_KEY,
+                        restaurant.restaurant.address
+                    )
+                    location = Location.objects.create(
+                        address=restaurant.restaurant.address,
+                        lon=lon,
+                        lat=lat,
+                        query_at=datetime.now()
+                    )
+                    restaurant_coordinates = (location.lon, location.lat)
+                try:
+                    distance_to_order = distance.distance(
+                        order_coordinates,
+                        restaurant_coordinates
+                    ).km
+                    distance_to_order = f'{round(distance_to_order, 3)} км'
+                except ValueError:
+                    distance_to_order = '0 км'
+                restaurants_with_distance_to_order.append(
+                    {
+                        "name": restaurant.restaurant.name,
+                        "distance_to_order": distance_to_order
+                    }
                 )
-                location = Location.objects.create(
-                    address=restaurant.restaurant.address,
-                    lon=lon,
-                    lat=lat,
-                    query_at=datetime.now()
-                )
-                restaurant_coordinates = (location.lon, location.lat)
-            restaurant_coordinates = (restaurant.lon, restaurant.lat)
-            try:
-                distance_to_order = distance.distance(
-                    order_coordinates,
-                    restaurant_coordinates
-                ).km
-                distance_to_order = f'{round(distance_to_order, 3)} км'
-            except ValueError:
-                distance_to_order = '0 км'
-            restaurants_with_distance.append(
-                {
-                    'restaurant': restaurant,
-                    'distance_to_order': distance_to_order
-                }
-            )
-        """
         order_with_restaurants.append(
             {
                 'order': order, 
-                'restaurants': order_rests 
+                'restaurants': restaurants_with_distance_to_order 
             }
         )
     return render(request, template_name='order_items.html', context={
