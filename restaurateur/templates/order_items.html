@@ -25,29 +25,29 @@
       <th>Ссылка на админку</th>
     </tr>
 
-    {% for order, restaurants in order_items %}
+    {% for order in order_items %}
       <tr>
-        <td>{{ order.id }}</td>
-        <td>{{ order.get_status_display }}</td>
-        <td>{{ order.get_pay_method_display }}</td>
-        <td>{{ order.order_price }}</td>
-        <td>{{ order.firstname }} {{ order.lastname }}</td>
-        <td>{{ order.phonenumber }}</td>
-        <td>{{ order.address }}</td>
-        <td>{{ order.comment }}</td>
+        <td>{{ order.order.id }}</td>
+        <td>{{ order.order.get_status_display }}</td>
+        <td>{{ order.order.get_pay_method_display }}</td>
+        <td>{{ order.order.order_price }}</td>
+        <td>{{ order.order.firstname }} {{ order.lastname }}</td>
+        <td>{{ order.order.phonenumber }}</td>
+        <td>{{ order.order.address }}</td>
+        <td>{{ order.order.comment }}</td>
         <td>
-          {% if order.restaurant %}
-            {{ order.restaurant.name }}
+          {% if order.order.restaurant %}
+            {{ order.order.restaurant.name }}
           {% else %}
             <details>
               <summary>Может быть приготовлен ресторанами:</summary>
-              {% for restaurant in restaurants %}
-              <li>{{ restaurant.restaurant__name }} - {{ restaurant.distance_to_order }}</li>
+              {% for restaurant in order.restaurants %}
+              <li>{{ restaurant.restaurant.restaurant.name }}</li>
               {% endfor %}
             </details>
           {% endif %}
         </td>
-        <td><a href="{% url 'admin:foodcartapp_order_change' object_id=order.id %}?next={{ request.path|urlencode }}">Редактировать заказ</td>
+        <td><a href="{% url 'admin:foodcartapp_order_change' object_id=order.order.id %}?next={{ request.path|urlencode }}">Редактировать заказ</td>
       </tr>
     {% endfor %}
    </table>

@@ -5,13 +5,12 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Count
+from django.db.models import Count, Subquery, OuterRef
 from django.conf import settings
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-import requests
 from geopy import distance
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
@@ -106,19 +105,30 @@ def view_restaurants(request):
 def view_orders(request):
     orders = Order.objects.count_order_price().exclude(status='done') \
         .order_by('-status')
+    locations = Location.objects.all()
+    orders_with_coordinates = orders.annotate(
+        lat=Subquery(
+            locations.filter(address=OuterRef('address')).values_list('lat')
+        ),
+        lon=Subquery(
+            locations.filter(address=OuterRef('address')).values_list('lon')
+        )
+    )
     order_with_restaurants = []
-    for order in orders:
-        products = [
-            item.product.id for item in order.cart_items.select_related('product').all()
-        ]
-        restaurants = RestaurantMenuItem.objects.filter(product__id__in=products) \
-            .values('restaurant__name', 'restaurant__address') \
-            .annotate(count_items=(Count('product__id'))) \
-            .filter(count_items=len(products))
-        try:
-            location = Location.objects.get(address=order.address)
-            order_coordinates = (location.lon, location.lat)
-        except Location.DoesNotExist:
+    for order in list(orders_with_coordinates):
+        products = order.cart_items.prefetch_related('product').values('product__id')
+        restaurant_items = RestaurantMenuItem.objects.select_related('product').filter(
+            product__id__in=products,
+            availability=True
+        ).annotate(
+            lat=Subquery(
+                locations.filter(address=OuterRef('restaurant__address')).values_list('lat')
+            ),
+            lon=Subquery(
+                locations.filter(address=OuterRef('restaurant__address')).values_list('lon')
+            ),
+        )
+        if not (order.lon and order.lat):
             lon, lat = fetch_coordinates(
                 settings.YANDEX_GEO_API_KEY,
                 order.address
@@ -130,36 +140,42 @@ def view_orders(request):
                 query_at=datetime.now()
             )
             order_coordinates = (location.lon, location.lat)
-        for restaurant in restaurants:
-            try:
-                location = Location.objects.get(address=restaurant['restaurant__address'])
-                restaurant_coordinates = (location.lon, location.lat)
-            except Location.DoesNotExist:
+
+        order_coordinates = (order.lon, order.lat)
+        restaurants_with_distance = []
+        for restaurant in restaurant_items:
+            if not(restaurant.lon and restaurant.lat):
                 lon, lat = fetch_coordinates(
                     settings.YANDEX_GEO_API_KEY,
-                    restaurant.address
+                    restaurant.restaurant.address
                 )
                 location = Location.objects.create(
-                    address=restaurant['restaurant__address'],
+                    address=restaurant.restaurant.address,
                     lon=lon,
                     lat=lat,
                     query_at=datetime.now()
                 )
                 restaurant_coordinates = (location.lon, location.lat)
-            restaurant['coordinates'] = restaurant_coordinates
+            restaurant_coordinates = (restaurant.lon, restaurant.lat)
             try:
                 distance_to_order = distance.distance(
                     order_coordinates,
                     restaurant_coordinates
                 ).km
-                restaurant['distance_to_order'] = f'{round(distance_to_order, 3)} км'
+                distance_to_order = f'{round(distance_to_order, 3)} км'
             except ValueError:
-                restaurant['distance_to_order'] = '0 км'
+                distance_to_order = '0 км'
+            restaurants_with_distance.append(
+                {
+                    'restaurant': restaurant,
+                    'distance_to_order': distance_to_order
+                }
+            )
         order_with_restaurants.append(
-            (order, sorted(
-                restaurants,
-                key=lambda restaurant: restaurant['distance_to_order']
-                ))
+            {
+                'order': order, 
+                'restaurants': restaurants_with_distance 
+            }
         )
     return render(request, template_name='order_items.html', context={
         'order_items': order_with_restaurants
