@@ -156,8 +156,8 @@ def view_orders(request):
                 distance_to_order = '0 км'
             restaurants_with_distance_to_order.append(
                 {
-                    "name": restaurant.name,
-                    "distance_to_order": distance_to_order
+                    'name': restaurant.name,
+                    'distance_to_order': distance_to_order
                 }
             )
         orders_with_restaurants.append(
