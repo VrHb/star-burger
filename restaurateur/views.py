@@ -14,6 +14,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 from geopy import distance
+from geopy.point import Point
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 from locations.models import Location
@@ -111,7 +112,7 @@ def view_orders(request):
         .order_by('-status')
     restaurant_items =  list(RestaurantMenuItem.objects.select_related('product', 'restaurant'))
     location_objects = Location.objects.all()
-    locations = {location.address: (location.lon, location.lat) for location in location_objects}
+    locations = {location.address: (location.lat, location.lon) for location in location_objects}
     orders_with_restaurants = []
     for order in orders:
         order_items = list(order.cart_items.all())
@@ -129,12 +130,10 @@ def view_orders(request):
                 lat=lat,
                 query_at=datetime.now()
             )
-            order_coordinates = (location.lon, location.lat)
+            order_coordinates = (location.lat, location.lon)
         restaurants_with_distance_to_order = []
         for restaurant in order_restaurants:
-            print(restaurant.address)
             restaurant_coordinates = locations.get(restaurant.address)
-            print(restaurant_coordinates)
             if not restaurant_coordinates:
                 lon, lat = fetch_coordinates(
                     settings.YANDEX_GEO_API_KEY,
@@ -146,11 +145,12 @@ def view_orders(request):
                     lat=lat,
                     query_at=datetime.now()
                 )
-                restaurant_coordinates = (location.lon, location.lat)
+                restaurant_coordinates = (location.lat, location.lon)
+            print(order.id, order_coordinates)
             try:
                 distance_to_order = distance.distance(
-                    order_coordinates,
-                    restaurant_coordinates
+                        order_coordinates,
+                        restaurant_coordinates
                 ).km
                 distance_to_order = f'{round(distance_to_order, 3)} км'
             except ValueError:
