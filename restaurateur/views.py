@@ -105,16 +105,18 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = list(Order.objects.count_order_price() \
-        .prefetch_related('cart_items').exclude(status='done') \
-        .order_by('-status'))
-    restaurant_items =  RestaurantMenuItem.objects.select_related('product', 'restaurant')
+    orders = Order.objects.count_order_price() \
+        .exclude(status='done') \
+        .prefetch_related('cart_items__product') \
+        .order_by('-status')
+    restaurant_items =  list(RestaurantMenuItem.objects.select_related('product', 'restaurant'))
     location_objects = Location.objects.all()
     locations = {location.address: (location.lon, location.lat) for location in location_objects}
     orders_with_restaurants = []
     for order in orders:
-        order_products = order.cart_items.values_list('product__id', flat=True)
-        order_restaurants = restaurant_items.filter(product__in=order_products, availability=True).distinct().values('restaurant__name', 'restaurant__address')
+        order_items = list(order.cart_items.all())
+        order_products = [item.product.id for item in order_items]
+        order_restaurants = set([item.restaurant for item in restaurant_items if item.product.id in order_products])
         order_coordinates = locations.get(order.address)
         if not order_coordinates:
             lon, lat = fetch_coordinates(
@@ -130,14 +132,16 @@ def view_orders(request):
             order_coordinates = (location.lon, location.lat)
         restaurants_with_distance_to_order = []
         for restaurant in order_restaurants:
-            restaurant_coordinates = locations.get(restaurant['restaurant__address'])
+            print(restaurant.address)
+            restaurant_coordinates = locations.get(restaurant.address)
+            print(restaurant_coordinates)
             if not restaurant_coordinates:
                 lon, lat = fetch_coordinates(
                     settings.YANDEX_GEO_API_KEY,
-                    restaurant['restaurant__address']
+                    restaurant.address
                 )
                 location = Location.objects.create(
-                    address=restaurant['restaurant__address'],
+                    address=restaurant.address,
                     lon=lon,
                     lat=lat,
                     query_at=datetime.now()
@@ -153,7 +157,7 @@ def view_orders(request):
                 distance_to_order = '0 км'
             restaurants_with_distance_to_order.append(
                 {
-                    "name": restaurant['restaurant__name'],
+                    "name": restaurant.name,
                     "distance_to_order": distance_to_order
                 }
             )
