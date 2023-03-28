@@ -146,7 +146,6 @@ def view_orders(request):
                     query_at=datetime.now()
                 )
                 restaurant_coordinates = (location.lat, location.lon)
-            print(order.id, order_coordinates)
             try:
                 distance_to_order = distance.distance(
                         order_coordinates,
