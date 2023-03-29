@@ -1,39 +1,19 @@
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-from phonenumber_field.serializerfields import PhoneNumberField
 
 from rest_framework.decorators import api_view
-from rest_framework.fields import ListField
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer, ModelSerializer, CharField, IntegerField
 
 
 from .models import Product
 from .models import Order
 from .models import CartItem
 
-
-class OrderSerializer(ModelSerializer):
-    products = ListField(allow_empty=False, write_only=True)
-
-    class Meta:
-        model = Order
-        fields = [
-            'id',
-            'firstname',
-            'lastname',
-            'phonenumber',
-            'address',
-            'products'
-        ]
+from .serializers import OrderSerializer, ProductSerializer
 
 
-
-class ProductSerializer(Serializer):
-    product = IntegerField(min_value=1)
-    quantity = IntegerField()
 
 
 def banners_list_api(request):
