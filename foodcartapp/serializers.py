@@ -7,6 +7,21 @@ from .models import Order
 class OrderSerializer(ModelSerializer):
     products = ListField(allow_empty=False, write_only=True)
 
+
+    def create(self, validated_data):
+        firstname = validated_data.get('firstname')
+        lastname = validated_data.get('lastname')
+        phonenumber = validated_data.get('phonenumber')
+        address = validated_data.get('address')
+
+        return Order.objects.create(
+            firstname=firstname,
+            lastname=lastname,
+            phonenumber=phonenumber,
+            address=address
+        )
+
+
     class Meta:
         model = Order
         fields = [
