@@ -1,24 +1,18 @@
-from datetime import datetime
-import itertools
-from pprint import pprint
-
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Count, Subquery, OuterRef
-from django.conf import settings
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 from geopy import distance
-from geopy.point import Point
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 from locations.models import Location
-from locations.geocoding import fetch_coordinates
+from locations.geo_operations import create_location_and_get_coordinates, \
+    get_distance_to_order
 
 
 class Login(forms.Form):
@@ -107,9 +101,13 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.count_order_price().get_done_orders()
+
     restaurant_items =  list(RestaurantMenuItem.objects.select_related('product', 'restaurant'))
-    location_objects = Location.objects.all()
-    locations = {location.address: (location.lat, location.lon) for location in location_objects}
+    
+    locations = {
+        location.address: (location.lat, location.lon) for location in Location.objects.all()
+    }
+
     orders_with_restaurants = []
     for order in orders:
         order_items = list(order.cart_items.all())
@@ -117,46 +115,17 @@ def view_orders(request):
         order_restaurants = set([item.restaurant for item in restaurant_items if item.product.id in order_products])
         order_coordinates = locations.get(order.address)
         if not order_coordinates:
-            try:
-                lon, lat = fetch_coordinates(
-                    settings.YANDEX_GEO_API_KEY,
-                    order.address
-                )
-                location = Location.objects.create(
-                    address=order.address,
-                    lon=lon,
-                    lat=lat,
-                    query_at=datetime.now()
-                )
-                order_coordinates = (location.lat, location.lon)
-            except TypeError:
-                order_coordinates = None
+            order_coordinates = create_location_and_get_coordinates(order.address)
+        
         restaurants_with_distance_to_order = []
         for restaurant in order_restaurants:
             restaurant_coordinates = locations.get(restaurant.address)
             if not restaurant_coordinates:
-                try:
-                    lon, lat = fetch_coordinates(
-                        settings.YANDEX_GEO_API_KEY,
-                        restaurant.address
-                    )
-                    location = Location.objects.create(
-                        address=restaurant.address,
-                        lon=lon,
-                        lat=lat,
-                        query_at=datetime.now()
-                    )
-                    restaurant_coordinates = (location.lat, location.lon)
-                except TypeError:
-                    restaurant_coordinates = None
-            if restaurant_coordinates and order_coordinates:
-                distance_to_order = distance.distance(
-                        order_coordinates,
-                        restaurant_coordinates
-                ).km
-                distance_to_order = f'{round(distance_to_order, 3)} км'
-            else:
-                distance_to_order = '0 км'
+                restaurant_coordinates = create_location_and_get_coordinates(restaurant.address)
+            distance_to_order = get_distance_to_order(
+                restaurant_coordinates,
+                order_coordinates
+            )
             restaurants_with_distance_to_order.append(
                 {
                     'name': restaurant.name,
