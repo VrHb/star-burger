@@ -33,8 +33,6 @@ class OrderSerializer(ModelSerializer):
             'products'
         ]
 
-
-
 class ProductSerializer(Serializer):
     product = IntegerField(min_value=1)
     quantity = IntegerField()

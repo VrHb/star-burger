@@ -106,10 +106,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.count_order_price() \
-        .exclude(status='done') \
-        .prefetch_related('cart_items__product') \
-        .order_by('-status')
+    orders = Order.objects.count_order_price().get_done_orders()
     restaurant_items =  list(RestaurantMenuItem.objects.select_related('product', 'restaurant'))
     location_objects = Location.objects.all()
     locations = {location.address: (location.lat, location.lon) for location in location_objects}

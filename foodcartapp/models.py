@@ -136,6 +136,11 @@ class OrderQuerySet(models.QuerySet):
         )
 
 
+    def get_done_orders(self):
+        return self.exclude(status='done').prefetch_related('cart_items__product') \
+            .order_by('-status')
+
+
 class Order(models.Model):
     ORDER_STATE_CHOICES = [
         ('accepted', 'Обрабатывается'),
