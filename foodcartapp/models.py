@@ -131,7 +131,7 @@ class OrderQuerySet(models.QuerySet):
     def count_order_price(self):
         return self.annotate(
             order_price=Sum(
-                F('cart_items__product__price') * F('cart_items__amount')
+                F('cart_items__product__price') * F('cart_items__quantity')
             )
         )
 
