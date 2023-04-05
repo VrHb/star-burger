@@ -128,6 +128,8 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+
+
     def count_order_price(self):
         return self.annotate(
             order_price=Sum(
@@ -137,7 +139,8 @@ class OrderQuerySet(models.QuerySet):
 
 
     def get_done_orders(self):
-        return self.exclude(status='done').prefetch_related('cart_items__product') \
+        return self.exclude(status='done').select_related('chosen_restaurant') \
+            .prefetch_related('cart_items__product') \
             .order_by('-status')
 
 
