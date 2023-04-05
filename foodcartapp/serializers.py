@@ -4,8 +4,13 @@ from rest_framework.serializers import Serializer, ModelSerializer, IntegerField
 from .models import Order
 
 
+class ProductSerializer(Serializer):
+    product = IntegerField(min_value=1)
+    quantity = IntegerField()
+
+
 class OrderSerializer(ModelSerializer):
-    products = ListField(allow_empty=False, write_only=True)
+    products = ProductSerializer(many=True, read_only=True) 
 
 
     def create(self, validated_data):
@@ -33,6 +38,3 @@ class OrderSerializer(ModelSerializer):
             'products'
         ]
 
-class ProductSerializer(Serializer):
-    product = IntegerField(min_value=1)
-    quantity = IntegerField()
