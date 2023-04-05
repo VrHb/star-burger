@@ -40,7 +40,7 @@ def create_location_and_get_coordinates(address):
         )
         coordinates = (location.lat, location.lon)
         return coordinates
-    except TypeError:
+    except Exception:
         return None
 
 
