@@ -102,7 +102,7 @@ def register_order(request):
         CartItem(
             order=order,
             product=product_from_db,
-            amount=product['quantity'],
+            quantity=product['quantity'],
             price=product_from_db.price
             )
         )

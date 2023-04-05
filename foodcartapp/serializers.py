@@ -1,13 +1,17 @@
 from rest_framework.fields import ListField
 from rest_framework.serializers import Serializer, ModelSerializer, IntegerField
 
-from .models import Order
+from .models import Order, CartItem 
 
 
-class ProductSerializer(Serializer):
-    product = IntegerField(min_value=1)
-    quantity = IntegerField()
+class ProductSerializer(ModelSerializer):
 
+    class Meta:
+        model = CartItem 
+        fields = [
+            'product',
+            'quantity'
+        ]
 
 class OrderSerializer(ModelSerializer):
     products = ProductSerializer(many=True, read_only=True) 
@@ -37,4 +41,3 @@ class OrderSerializer(ModelSerializer):
             'address',
             'products'
         ]
-

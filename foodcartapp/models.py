@@ -247,7 +247,7 @@ class CartItem(models.Model):
         related_name='cart_items',
         on_delete=models.CASCADE
         )
-    amount = models.IntegerField(
+    quantity = models.IntegerField(
         'Количество',
         validators=[MinValueValidator(1)]
     )
