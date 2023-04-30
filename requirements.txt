@@ -11,3 +11,5 @@ geopy==2.3.0
 ipython==8.8.0
 phonenumbers==8.13.4
 Pillow==9.4.0
+gunicorn==20.1.0
+rollbar==0.16.3
