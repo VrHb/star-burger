@@ -6,7 +6,7 @@ echo "Pulling changes from repository ..."
 git pull origin main
 
 echo "Creating .env file ..."
-ENVFILE=.env
+ENVFILE=".env"
 touch $ENVFILE
 
 echo "Generating django secret key ..."
