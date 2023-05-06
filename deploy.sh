@@ -19,6 +19,9 @@ echo DEBUG=0 >> $ENVFILE
 echo "Create static files env value for collectstatic ..."
 echo STATIC_DIR_NAME=staticfiles
 
+echo "Add host to ALLOWED_HOSTS env ..."
+echo "ALLOWED_HOSTS=$2" >> $ENVFILE
+
 echo "Creating virtual environment ..."
 python -m venv env
 source ./env/bin/activate
@@ -31,7 +34,7 @@ echo "Install js packets ..."
 npm ci --dev
 
 echo "Configure frontend ..."
-./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 
 echo "Installing python libs ..."
 pip install -r requirements.txt
@@ -47,4 +50,6 @@ echo "Restarting app unit ..."
 sudo systemctl restart star-burger.service
 
 echo "All done!"
+
+
 
