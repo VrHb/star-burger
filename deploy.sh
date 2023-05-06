@@ -6,7 +6,7 @@ echo "Pulling changes from repository ..."
 git pull origin main
 
 echo "Creating .env file ..."
-ENVFILE=$1
+ENVFILE=.env
 touch $ENVFILE
 
 echo "Generating django secret key ..."
@@ -17,10 +17,10 @@ echo "Disable debug settings ..."
 echo DEBUG=0 >> $ENVFILE
 
 echo "Create static files env value for collectstatic ..."
-echo STATIC_DIR_NAME=staticfiles
+echo STATIC_DIR_NAME=staticfiles >> $ENVFILE
 
 echo "Add host to ALLOWED_HOSTS env ..."
-echo "ALLOWED_HOSTS=$2" >> $ENVFILE
+echo "ALLOWED_HOSTS=$1" >> $ENVFILE
 
 echo "Creating virtual environment ..."
 python -m venv env
@@ -30,7 +30,7 @@ echo "Installing js packet managers ..."
 sudo apt install nodejs
 sudo apt install npm
 
-echo "Install js packets ..."
+echo "Instaling js packets ..."
 npm ci --dev
 
 echo "Configure frontend ..."
@@ -39,7 +39,7 @@ echo "Configure frontend ..."
 echo "Installing python libs ..."
 pip install -r requirements.txt
 
-echo "Making migrations ..."
+echo "Making db operations ..."
 python manage.py makemigrations
 python manage.py migrate
 
@@ -50,6 +50,4 @@ echo "Restarting app unit ..."
 sudo systemctl restart star-burger.service
 
 echo "All done!"
-
-
 
