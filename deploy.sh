@@ -17,17 +17,34 @@ echo "Disable debug settings ..."
 echo DEBUG=0 >> $ENVFILE
 
 echo "Create static files env value for collectstatic ..."
-echo STATIC_DIR_NAME=$2
+echo STATIC_DIR_NAME=staticfiles
+
 echo "Creating virtual environment ..."
 python -m venv env
 source ./env/bin/activate
-echo "Installing libs ..."
+
+echo "Installing js packet managers ..."
+sudo apt install nodejs
+sudo apt install npm
+
+echo "Install js packets ..."
+npm ci --dev
+
+echo "Configure frontend ..."
+./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+
+echo "Installing python libs ..."
 pip install -r requirements.txt
+
 echo "Making migrations ..."
 python manage.py makemigrations
 python manage.py migrate
+
 echo "Collecting static files ..."
 python manage.py collectstatic
 
+echo "Restarting app unit ..."
+sudo systemctl restart star-burger.service
 
+echo "All done!"
 
