@@ -52,6 +52,6 @@ sudo systemctl restart star-burger.service
 
 echo "Telling rollbar about deploy ..."
 source .env
-curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "$ENVIRONMENT", "revision": "dc1f74dee5", "rollbar_name": star-burger, "local_username": $USER, "comment": "Deployed", "status": "succeeded"}'
+curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d \'{"environment": "$ENVIRONMENT", "revision": "1.0", "rollbar_name": "star-burger", "local_username": "$USER", "comment": "Deployed", "status": "succeeded"}\'
 
-echo "All done!"
+echo "\n\nAll done!"
