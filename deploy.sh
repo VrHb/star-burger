@@ -22,7 +22,7 @@ echo "Installing python libs ..."
 pip install -r requirements.txt
 
 echo "Making db operations ..."
-python manage.py makemigrations
+python manage.py makemigrations --dry-run --check
 python manage.py migrate
 
 echo "Collecting static files ..."
