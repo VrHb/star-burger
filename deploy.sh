@@ -12,10 +12,6 @@ echo "Creating virtual environment ..."
 python -m venv env
 source ./env/bin/activate
 
-echo "Installing js packet managers ..."
-sudo apt install nodejs
-sudo apt install npm
-
 echo "Instaling js packets ..."
 npm ci --dev
 
