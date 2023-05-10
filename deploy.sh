@@ -26,7 +26,7 @@ python manage.py makemigrations --dry-run --check
 python manage.py migrate
 
 echo "Collecting static files ..."
-python manage.py collectstatic --clear
+python manage.py collectstatic --no-input
 
 echo "Restarting app unit ..."
 sudo systemctl restart star-burger.service
