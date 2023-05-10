@@ -5,20 +5,6 @@ set -e
 echo "Pulling changes from repository ..."
 git pull origin main
 
-echo "Creating .env file ..."
-ENVFILE=".env"
-touch $ENVFILE
-
-echo "Generating django secret key ..."
-SECRET_KEY=`openssl rand -base64 48`
-echo SECRET_KEY=\"$SECRET_KEY\" >> $ENVFILE
-
-echo "Disable debug settings ..."
-echo DEBUG=0 >> $ENVFILE
-
-echo "Create static files env value for collectstatic ..."
-echo STATIC_DIR_NAME=staticfiles >> $ENVFILE
-
 echo "Add host to ALLOWED_HOSTS env ..."
 echo "ALLOWED_HOSTS=$1" >> $ENVFILE
 
