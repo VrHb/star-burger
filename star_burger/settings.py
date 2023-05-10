@@ -131,9 +131,12 @@ STATICFILES_DIRS = [
 
 YANDEX_GEO_API_KEY = env('YANDEX_API_KEY')
 
-ROLLBAR = {
-    'access_token': env('ROLLBAR_TOKEN'),
-    'environment': env('ENVIRONMENT'),
-    'code_version': '0.1',
-    'root': BASE_DIR
-}
+ROLLBAR_TOKEN = env('ROLLBAR_TOKEN', None) 
+
+if ROLLBAR_TOKEN:
+    ROLLBAR = {
+        'access_token': ROLLBAR_TOKEN,
+        'environment': env('ENVIRONMENT', "local_dev"),
+        'code_version': '0.1',
+        'root': BASE_DIR
+    }
