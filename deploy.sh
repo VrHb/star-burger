@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 echo "Making db operations ..."
 python manage.py makemigrations --dry-run --check
-python manage.py migrate
+python manage.py migrate --no-input
 
 echo "Collecting static files ..."
 python manage.py collectstatic --no-input
