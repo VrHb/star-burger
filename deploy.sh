@@ -33,7 +33,7 @@ sudo systemctl restart star-burger.service
 
 
 echo "Telling rollbar about deploy ..."
-CODE_REVISION=git rev-parse --short HEAD
+CODE_REVISION="$(git rev-parse --short HEAD)"
 source .env
 curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "'$ENVIRONMENT'", "revision": "'$CODE_REVISION'", "rollbar_name": "star-burger", "local_username": "'$USER'", "comment": "Deployed", "status": "succeeded"}'
 

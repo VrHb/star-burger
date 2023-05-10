@@ -137,6 +137,11 @@ if ROLLBAR_TOKEN:
     ROLLBAR = {
         'access_token': ROLLBAR_TOKEN,
         'environment': env('ENVIRONMENT', "local_dev"),
-        'code_version': '0.1',
+        'code_version': os.system("git rev-parse HEAD"),
+        'server': {
+            'root': 'file:///users/VrHb/Documents/VrHb/star-burger/',
+            'branch': 'main'
+        },
         'root': BASE_DIR
+
     }
