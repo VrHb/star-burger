@@ -6,7 +6,7 @@ echo "Pulling changes from repository ..."
 git pull origin main
 
 echo "Add host to ALLOWED_HOSTS env ..."
-echo "ALLOWED_HOSTS=$1" >> $ENVFILE
+echo "ALLOWED_HOSTS=$1" >> .env 
 
 echo "Creating virtual environment ..."
 python -m venv env
@@ -26,7 +26,7 @@ python manage.py makemigrations --dry-run --check
 python manage.py migrate
 
 echo "Collecting static files ..."
-python manage.py collectstatic
+python manage.py collectstatic --clear
 
 echo "Restarting app unit ..."
 sudo systemctl restart star-burger.service
