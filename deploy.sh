@@ -5,11 +5,7 @@ set -e
 echo "Pulling changes from repository ..."
 git pull origin main
 
-echo "Add host to ALLOWED_HOSTS env ..."
-echo "ALLOWED_HOSTS=$1" >> .env 
-
-echo "Creating virtual environment ..."
-python -m venv env
+echo "Activating virtual environment ..."
 source ./env/bin/activate
 
 echo "Instaling js packets ..."
@@ -30,7 +26,6 @@ python manage.py collectstatic --no-input
 
 echo "Restarting app unit ..."
 sudo systemctl restart star-burger.service
-
 
 echo "Telling rollbar about deploy ..."
 CODE_REVISION="$(git rev-parse --short HEAD)"
