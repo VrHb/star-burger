@@ -9,10 +9,10 @@ echo "Run docker containers ..."
 docker-compose build && docker-compose up -d
 
 echo "Copy static files from container ..."
-docker cp web-frontend:/usr/app/bundles staticfiles
-docker cp web-backend:/usr/src/app/staticfiles staticfiles
+docker cp -a web-frontend:/usr/app/bundles staticfiles
+docker cp -a web-backend:/usr/src/app/staticfiles staticfiles
 
 echo "Restart backend ..."
-docker restart web-frontend
+docker restart web-backend
 
 echo "Done!"
