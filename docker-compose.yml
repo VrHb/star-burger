@@ -5,7 +5,7 @@ services:
     build: ./
     command: gunicorn -w 3 -b 127.0.0.1:8000
     ports:
-      - 9900:8000
+      - 8800:8000
     env_file: ./.env
     volumes:
       - ./:/usr/src/app
