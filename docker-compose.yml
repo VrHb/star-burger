@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  back:
+    container_name: web-backend
+    build: ./
+    command: gunicorn -w 3 -b 127.0.0.1:8000
+    ports:
+      - 9900:8000
+    env_file: ./.env
+    volumes:
+      - ./:/usr/src/app
+  front:
+    container_name: web-frontend
+    build: ./frontend/
+    command: ./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+    depends_on:
+      - back
+
