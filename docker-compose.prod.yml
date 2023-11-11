@@ -3,12 +3,10 @@ services:
   back:
     container_name: web-backend
     build: ./
-    command: python manage.py runserver
+    command: gunicorn -w 3 -b 0.0.0.0:8000 star_burger.wsgi:application
     ports:
-      - 127.0.0.1:9900:8000
-    env_file: ./.env
-    volumes:
-      - ./:/usr/src/app
+      - 127.0.0.1:9000:8000
+    env_file: ./.env.prod
   front:
     container_name: web-frontend
     build: ./frontend/
