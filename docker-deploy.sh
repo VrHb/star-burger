@@ -6,13 +6,12 @@ echo "Pulling changes from repository ..."
 git pull origin main
 
 echo "Run docker containers ..."
-docker-compose build && docker-compose up -d
+docker-compose -f docker-compsoe.prod.yml up -d --build
 
 echo "Copy static files from container ..."
-docker cp -a web-frontend:/usr/app/bundles staticfiles
-docker cp -a web-backend:/usr/src/app/staticfiles staticfiles
-
-echo "Restart backend ..."
-docker restart web-backend
+docker-compose run back python manage.py collectstatic
+docker cp -a web-backend:/usr/src/app/staticfiles/. staticfiles
+docker cp -a web-frontend:/usr/src/app/bundles/. staticfiles
+cp -r assets/* staticfiles
 
 echo "Done!"
