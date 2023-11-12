@@ -11,6 +11,9 @@ env.read_env()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+prod_env_file = '.env.prod'
+if os.path.isfile(prod_env_file):
+    env.read_env(prod_env_file)
 
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
@@ -42,7 +45,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'  
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
 ]
 
 ROOT_URLCONF = 'star_burger.urls'
@@ -86,7 +89,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
-    'default': 
+    'default':
         dj_database_url.config(
             default=env('PSQL_URL')
         )
@@ -131,7 +134,7 @@ STATICFILES_DIRS = [
 
 YANDEX_GEO_API_KEY = env('YANDEX_API_KEY')
 
-ROLLBAR_TOKEN = env('ROLLBAR_TOKEN', None) 
+ROLLBAR_TOKEN = env('ROLLBAR_TOKEN', None)
 
 if ROLLBAR_TOKEN:
     ROLLBAR = {
