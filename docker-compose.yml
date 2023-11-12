@@ -12,3 +12,4 @@ services:
   front:
     container_name: web-frontend
     build: ./frontend/
+    command: ./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"

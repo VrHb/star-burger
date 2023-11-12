@@ -13,5 +13,6 @@ docker-compose run back python manage.py collectstatic
 docker cp -a web-backend:/usr/src/app/staticfiles/. staticfiles
 docker cp -a web-frontend:/usr/src/app/bundles/. staticfiles
 cp -r assets/* staticfiles
+docker stop web-frontend
 
 echo "Done!"
