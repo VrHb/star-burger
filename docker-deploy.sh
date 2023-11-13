@@ -6,7 +6,7 @@ echo "Pulling changes from repository ..."
 git pull origin main
 
 echo "Run docker containers ..."
-docker-compose -f docker-compose.prod.yml --build up -d
+docker-compose -f docker-compose.prod.yml up -d --build
 
 echo "Copy static files from container ..."
 docker exec -it web-backend python manage.py collectstatic
