@@ -17,7 +17,8 @@
 
 ## Как запустить dev-версию сайта
 
-Для запуска сайта нужно запустить **одновременно** бэкенд и фронтенд, в двух терминалах.
+Для запуска сайта нужно установить docker, см. [доку](https://docs.docker.com/engine/install/)
+
 
 ### Как собрать бэкенд
 
@@ -31,32 +32,6 @@ git clone https://github.com/devmanorg/star-burger.git
 cd star-burger
 ```
 
-[Установите Python](https://www.python.org/), если этого ещё не сделали.
-
-Проверьте, что `python` установлен и корректно настроен. Запустите его в командной строке:
-```sh
-python --version
-```
-**Важно!** Версия Python должна быть не ниже 3.6.
-
-Возможно, вместо команды `python` здесь и в остальных инструкциях этого README придётся использовать `python3`. Зависит это от операционной системы и от того, установлен ли у вас Python старой второй версии. 
-
-В каталоге проекта создайте виртуальное окружение:
-```sh
-python -m venv venv
-```
-Активируйте его. На разных операционных системах это делается разными командами:
-
-- Windows: `.\venv\Scripts\activate`
-- MacOS/Linux: `source venv/bin/activate`
-
-
-Установите зависимости в виртуальное окружение:
-```sh
-pip install -r requirements.txt
-```
-
-
 #### Для работы проекта понадобится две переменные окружения:
 
 Создайте файл `.env`:
@@ -65,21 +40,12 @@ pip install -r requirements.txt
 touch .env
 ```
 
-1. Секретный ключ проекта: 
-
-```
-python manage.py shell
-```
-
-```
-from django.core.management.utils import get_random_secret_key  
-
-get_random_secret_key()
-```
+1. Секретный ключ проекта:
 
 ```
 echo "DJANGO_SECRET_KEY"="<сгенерированный ключ проекта>" >> .env
 ```
+
 2. Переменная окружения для определения расстояния от адреса заказа до ресторана `YANDEX_API_KEY`. Посмотреть как получить можно [тут](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
 
 ```sh
@@ -92,23 +58,20 @@ YANDEX_API_KEY="<ключ api yandex geocoder>"
 
 #### Последний шаг сборки бэкэнда
 
-Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
-
-```sh
-python manage.py migrate
+Выполните миграции в БД:
+```shell
+python manage.py makemigrations --dry-run --check;
+python manage.py migrate --no-input
 ```
 
-Запустите сервер:
+Запустите контейнер с бэкэндом:
 
 ```sh
-python manage.py runserver
+docker-compose --build up -d
 ```
 
-Откройте сайт в браузере по адресу [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Если вы увидели пустую белую страницу, то не пугайтесь, выдохните. Просто фронтенд пока ещё не собран. Переходите к следующему разделу README.
-
+Откройте сайт в браузере по адресу [http://127.0.0.1:9900/](http://127.0.0.1:9900/)
 ### Собрать фронтенд
-
-**Откройте новый терминал**. Для работы сайта в dev-режиме необходима одновременная работа сразу двух программ `runserver` и `parcel`. Каждая требует себе отдельного терминала. Чтобы не выключать `runserver` откройте для фронтенда новый терминал и все нижеследующие инструкции выполняйте там.
 
 [Установите Node.js](https://nodejs.org/en/), если у вас его ещё нет.
 
@@ -169,38 +132,16 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ## Как запустить prod-версию сайта
 
+Для запуска сайта нужно установить на сервер docker, см. [доку](https://docs.docker.com/engine/install/)
 
-1. Уcтановить python3, nodejs, npm:
+1. Создать файл `.env.prod` в каталоге `star_burger/` со следующими настройками:
 
-```
-sudo apt install python3 nodejs npm -y
-```
-
-2. Развернуть виртуальное окружение:
-
-```
-cd star-burger;
-python3 -m venv env
-```
-
-3. Создать файл `.env` в каталоге `star_burger/` со следующими настройками:
-
-- Секретный ключ проекта: 
-
-```
-. ./env/bib/activate;
-python3 manage.py shell
-```
-
-```
-from django.core.management.utils import get_random_secret_key  
-
-get_random_secret_key()
-```
+- Секретный ключ проекта:
 
 ```
 echo "DJANGO_SECRET_KEY"="<сгенерированный ключ проекта>" >> .env
 ```
+
 - Переменная окружения для определения расстояния от адреса заказа до ресторана `YANDEX_API_KEY`. Посмотреть как получить можно [тут](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
 
 ```sh
@@ -215,10 +156,17 @@ YANDEX_API_KEY="<ключ api yandex geocoder>"
 
 - `ROLLBAR_TOKEN` и `ENVIRONMENT` - для получения сообщений об ошибках, [смотри доку rollbar](https://docs.rollbar.com/docs/django)
 
-4. Запуспить bash-скрипт:
+2. Запуспить bash-скрипт:
 
 ```
-./deploy.sh
+./docker-deploy.sh
+```
+
+3. Выполнить миграции в БД:
+
+```shell
+docker-compose exec -it python manage.py makemigrations --dry-run --check;
+docker-compose exec -it python manage.py migrate --no-input
 ```
 
 ## Цели проекта
