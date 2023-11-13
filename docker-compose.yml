@@ -2,14 +2,11 @@ version: '3.8'
 services:
   back:
     container_name: web-backend
-    build: ./
-    command: python manage.py runserver
+    build: ./backend/
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
-      - 127.0.0.1:9900:8000
+      - 9900:8000
     env_file: ./.env
     volumes:
-      - ./:/usr/src/app
-  front:
-    container_name: web-frontend
-    build: ./frontend/
-    command: ./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+      - ./backend:/usr/src/app
+      - ./frontend:/usr/src/app/frontend
