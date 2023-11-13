@@ -9,8 +9,3 @@ RUN pip install --no-cache-dir -U pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
-RUN python manage.py makemigrations --dry-run --check
-
-RUN python manage.py migrate --no-input
-

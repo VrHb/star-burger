@@ -1,6 +1,6 @@
-bundles/**
-node_modules/
-media/
+*/bundles/**
+*/node_modules/
+*/media/
 staticfiles/
 
 # Byte-compiled / optimized / DLL files

@@ -6,14 +6,9 @@ from environs import Env
 
 
 env = Env()
-env.read_env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-prod_env_file = '.env.prod'
-if os.path.isfile(prod_env_file):
-    env.read_env(prod_env_file)
 
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
@@ -126,10 +121,10 @@ INTERNAL_IPS = [
     '127.0.0.1'
 ]
 
-
+FRONTEND_PATH = 'frontend'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "assets"),
-    os.path.join(BASE_DIR, "bundles"),
+    os.path.join(BASE_DIR, FRONTEND_PATH, "assets"),
+    os.path.join(BASE_DIR, FRONTEND_PATH, "bundles"),
 ]
 
 YANDEX_GEO_API_KEY = env('YANDEX_API_KEY')
