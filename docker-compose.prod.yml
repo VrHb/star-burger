@@ -2,7 +2,7 @@ version: '3.8'
 services:
   back:
     container_name: web-backend
-    build: ./
+    build: ./backend/
     command: gunicorn -w 3 -b 0.0.0.0:8000 star_burger.wsgi:application
     ports:
       - 127.0.0.1:9000:8000
@@ -10,3 +10,4 @@ services:
   front:
     container_name: web-frontend
     build: ./frontend/
+    command: ./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
